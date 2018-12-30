@@ -1,16 +1,26 @@
-## Pygame Virtual LED matrix
+# Pygame Virtual LED matrix
 
-Currently uses Python 2 and Pygame to display a matrix.  
+### Apologies in advance for the spaghetti code. I wrote this a long time ago when I was first learning.   
+That said, it was very difficult to get right and I am still proud of myself for figuring this out without help.
+
+*And don't worry, I'm fixing it...*  
+
+## Instructions
+
+Uses Python 2 and Pygame to display a matrix.  
 
 Each file is a slightly different tunnel pattern.
+
+#### First you must install dependencies:
+`pip2 install -r requirements.txt`
 
 #### To run the tunnel.py program:
 
 `python2 tunnel.py`
 
-
-
 #### Press _space bar_ to start or stop movement, _V_ to change direction, and _X_ to add the 'X' to xfold pattern.
+
+## About
 
 This was a program I wrote in my early days of learning programming. It was extremely difficult for me  
 to devise an algorithm for the pattern and even today I'm having trouble understanding exactly how I got  
