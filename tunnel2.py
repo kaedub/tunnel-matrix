@@ -27,8 +27,8 @@ pygame.init()
 
 FRAME_WIDTH = 512 * 2
 FRAME_HEIGHT = 512 * 2
-BOARD_WIDTH = 128
-BOARD_HEIGHT = 128
+BOARD_WIDTH = 64 * 2
+BOARD_HEIGHT = 64 * 2
 GAP_SIZE = 1
 CARD_WIDTH = (FRAME_WIDTH / BOARD_WIDTH) - GAP_SIZE
 CARD_HEIGHT = (FRAME_HEIGHT / BOARD_HEIGHT) - GAP_SIZE
@@ -64,83 +64,99 @@ COLORS = [SALMON, LRED, RED, CRIMSON, ORANGE, YELLOW, GOLD, LIME, GREEN, SEAGREE
 while BOARD_WIDTH / 2 > len(COLORS):
     COLORS += COLORS
 
+# Some magic is going on here that needs to be explained
+def reflect_index(length, index):
+    return 2 * length - index - 1
+
+class Square():
+    """Square class to separate concern of drawing pygame shapes"""
+    pass
+
 class Tunnel():
+    """Draws a tunnel matrix that can be moved each frame.
+    Must be run inside of a pygame game loop."""
     def __init__(self):    
         self.colors = COLORS[0: len(COLORS)]
-        self.length = len(self.colors)    # = BOARD_WIDTH and BOARD_HEIGHT
-        self.rect = LED_RECT
-        self.m = 0                          # m, movement
+        self.length = BOARD_WIDTH / 2    # = BOARD_WIDTH and BOARD_HEIGHT
+        self.rect = LED_RECT                
+        self.m = 0                          # m, movement index
         self.direction = 1
         self.drawcross = False
+    
+    def _set_rect_row(self, pos):
+        self.rect[0] = GAP_SIZE
+        self.rect[1] = ((CARD_HEIGHT + GAP_SIZE) * pos) + (GAP_SIZE / 2) 
+    
+    def _set_rect_col(self, pos):
+        self.rect[0] = ((CARD_WIDTH + GAP_SIZE) * pos) + (GAP_SIZE / 2)         
         
-    def draw_tunnel(self, status):
+    def render(self, status):
+        """Render the tunnel matrix inside frame """
         if status == True:
-            if self.direction == 1:
-               self.m += 1
-            elif self.direction == -1:
-               self.m -= 1
-        for i in range(BOARD_HEIGHT):
-            ####################################################################
-            # x and y hold data (color) positions, i and j hold matrix position
-            # reflect: if halfway through list,
-            #          then y = L - (i - (L - 1)
-            ####################################################################
-            # move rect to the first column
-            self.rect[0] = GAP_SIZE
-            # move rect to row
-            self.rect[1] = ((CARD_HEIGHT + GAP_SIZE) * i) + (GAP_SIZE / 2) 
+            self.m += self.direction
+
+        for row in range(BOARD_HEIGHT):
+            self._set_rect_row(row)
             
-            # y axis pattern logic
-            if i < self.length:
-                y = i      
-            else:
-                y = self.length - (i - (self.length - 1))   		# reflect #
-            for j in range(BOARD_WIDTH):
-                self.rect[0] = ((CARD_WIDTH + GAP_SIZE) * j) + (GAP_SIZE / 2)
-                if j < self.length:
-                    x = j
-                else:
-                    x = self.length - (j - (self.length - 1))   	# reflect #
+            # color_y is the color index for the y-axis or top and bottom quadrants.
+            # if row has passed halfway then index reverses
+            color_y = row if row < self.length else reflect_index(self.length, row)
+
+            for col in range(BOARD_WIDTH):
+                self._set_rect_col(col)
+
+                # color_x is the color index for x-axis or left and right quadrants.
+                color_x = col if col < self.length else reflect_index(self.length, col)
                     
-                # x axis pattern logic
-                if (y <= j <= ((self.length * 2 - 1) - y)):     # pattern logic (y,x + t) % L
-                    pygame.draw.rect(FRAME, self.colors[(y + self.m) % self.length], self.rect)                  
+                # draw cell with y quadrant color index
+                if (color_y <= col <= reflect_index(self.length, color_y)):     # pattern logic (y, x + t) % L
+                    color_i = (color_y + self.m) % self.length
+                # draw cell with x quadrant color index          
                 else:
-                    pygame.draw.rect(FRAME, self.colors[(x + self.m) % self.length], self.rect)
+                    color_i = (color_x + self.m) % self.length
+
+                pygame.draw.rect(FRAME, self.colors[color_i], self.rect)  
+                
         
-    def draw_xfold_tunnel(self, status):
+    def render_xfold(self, status):
         if status == True:
             if self.direction == 1:
                self.m += 1
             elif self.direction == -1:
                self.m -= 1
-        for i in range(BOARD_HEIGHT):
+        for row in range(BOARD_HEIGHT):
             self.rect[0] = GAP_SIZE     # move rect to the first column
-            self.rect[1] = ((CARD_HEIGHT + GAP_SIZE) * i) + (GAP_SIZE / 2) # move rect to row
-            if i < self.length:
-                y = i      # y is used to reference to colors list
+            self.rect[1] = ((CARD_HEIGHT + GAP_SIZE) * row) + (GAP_SIZE / 2) # move rect to row
+
+            # 
+            if row < self.length:
+                y = row      # y is used to reference to colors list
             else:
-                y = self.length - (i - (self.length - 1))   # reflect #
-            for j in range(BOARD_WIDTH):
-                self.rect[0] = ((CARD_WIDTH + GAP_SIZE) * j) + (GAP_SIZE / 2)
-                if j < self.length:
-                    x = j   # x is used to reference to colors list
+                y = self.length - (row - (self.length - 1))   # reflect #
+            for col in range(BOARD_WIDTH):
+                self.rect[0] = ((CARD_WIDTH + GAP_SIZE) * col) + (GAP_SIZE / 2)
+                if col < self.length:
+                    x = col   # x is used to reference to colors list
                 else:
-                    x = 2 * self.length - j - 1   # reflect - simplified equation #
+                    # re
+                    x = 2 * self.length - col - 1   # reflect - simplified equation #
                 ###########################################################
                 # This is all pattern logic
                 ###########################################################
-                if (i == j) or (j + i == self.length * 2 - 1):     # pattern logic (y,x + t) % L
+                # if part of diagonal cross
+                if (row == col) or (col + row == self.length * 2 - 1):     # pattern logic (y,x + t) % L
                     if self.drawcross:
-                        pygame.draw.rect(FRAME, self.colors[((self.length - (i - (self.length - 1))) + self.m)% self.length], self.rect)
+                        # ((L - (y - (L - 1))) + t)% L
+                        pygame.draw.rect(FRAME, self.colors[((self.length - (row - (self.length - 1))) + self.m)% self.length], self.rect)
                     else:
-                        pygame.draw.rect(FRAME, self.colors[(y + (self.m) + 1) % self.length], self.rect)
-                elif (i + j > self.length * 2 - 1):
+                        pygame.draw.rect(FRAME, self.colors[(y + 1 + self.m) % self.length], self.rect)
+                # if par
+                elif (row + col > self.length * 2 - 1):
                     if (y - x) > 0:
                         pygame.draw.rect(FRAME, self.colors[(y + 1 + self.m) % self.length], self.rect)
                     elif (y - x) < 0:
                         pygame.draw.rect(FRAME, self.colors[(x + 1 + self.m) % self.length], self.rect)
-                elif (i + j < self.length * 2 - 1):
+                elif (row + col < self.length * 2 - 1):
                     if (y - x) > 0:
                         pygame.draw.rect(FRAME, self.colors[(y + 1 + self.m) % self.length], self.rect)
                     elif (y - x) < 0:
@@ -160,9 +176,9 @@ def main():
     while game_loop:
        FRAME.fill(WHITE)
        if patternType == 1:
-           pattern.draw_tunnel(isMoving)
+           pattern.render(isMoving)
        elif patternType == 2:
-           pattern.draw_xfold_tunnel(isMoving)
+           pattern.render_xfold(isMoving)
        
        for event in pygame.event.get():
           if event.type == pygame.QUIT:
