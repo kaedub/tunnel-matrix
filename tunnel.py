@@ -61,7 +61,7 @@ GREY = (155,155,155)
 COLORS = [SALMON, LRED, RED, CRIMSON, ORANGE, YELLOW, GOLD, LIME, GREEN, SEAGREEN,
           AQUA, BLUE, NAVY, PURPLE, VIOLET, GREY]
 
-while BOARD_WIDTH / 2 > len(COLORS):
+while BOARD_WIDTH // 2 > len(COLORS):
     COLORS += COLORS
 
 # Some magic is going on here that needs to be explained
@@ -77,7 +77,7 @@ class Tunnel():
     Must be run inside of a pygame game loop."""
     def __init__(self):    
         self.colors = COLORS[0: len(COLORS)]
-        self.length = BOARD_WIDTH / 2    # = BOARD_WIDTH and BOARD_HEIGHT
+        self.length = BOARD_WIDTH // 2    # = BOARD_WIDTH and BOARD_HEIGHT
         self.rect = LED_RECT                
         self.m = 0                          # m, movement index
         self.direction = 1
@@ -85,10 +85,10 @@ class Tunnel():
     
     def _set_rect_row(self, pos):
         self.rect[0] = GAP_SIZE
-        self.rect[1] = ((CARD_HEIGHT + GAP_SIZE) * pos) + (GAP_SIZE / 2) 
+        self.rect[1] = ((CARD_HEIGHT + GAP_SIZE) * pos) + (GAP_SIZE // 2) 
     
     def _set_rect_col(self, pos):
-        self.rect[0] = ((CARD_WIDTH + GAP_SIZE) * pos) + (GAP_SIZE / 2)         
+        self.rect[0] = ((CARD_WIDTH + GAP_SIZE) * pos) + (GAP_SIZE // 2)         
         
     def render(self, status):
         """Render the tunnel matrix inside frame """
@@ -99,17 +99,18 @@ class Tunnel():
             self._set_rect_row(row)
             
             # color_y is the color index for the y-axis or top and bottom quadrants.
-            # if row has passed halfway then index reverses
+            # if row has passed halfway then index reverses for bottom quadrant
             color_y = row if row < self.length else reflect_index(self.length, row)
 
             for col in range(BOARD_WIDTH):
                 self._set_rect_col(col)
 
                 # color_x is the color index for x-axis or left and right quadrants.
+                # if col has passed halfway then index reverses for right quadrant
                 color_x = col if col < self.length else reflect_index(self.length, col)
                     
                 # draw cell with y quadrant color index
-                if (color_y <= col <= reflect_index(self.length, color_y)):     # pattern logic (y, x + t) % L
+                if (color_y <= col <= reflect_index(self.length, color_y)):
                     color_i = (color_y + self.m) % self.length
                 # draw cell with x quadrant color index          
                 else:
@@ -126,7 +127,7 @@ class Tunnel():
                self.m -= 1
         for row in range(BOARD_HEIGHT):
             self.rect[0] = GAP_SIZE     # move rect to the first column
-            self.rect[1] = ((CARD_HEIGHT + GAP_SIZE) * row) + (GAP_SIZE / 2) # move rect to row
+            self.rect[1] = ((CARD_HEIGHT + GAP_SIZE) * row) + (GAP_SIZE // 2) # move rect to row
 
             # 
             if row < self.length:
@@ -134,7 +135,7 @@ class Tunnel():
             else:
                 y = self.length - (row - (self.length - 1))   # reflect #
             for col in range(BOARD_WIDTH):
-                self.rect[0] = ((CARD_WIDTH + GAP_SIZE) * col) + (GAP_SIZE / 2)
+                self.rect[0] = ((CARD_WIDTH + GAP_SIZE) * col) + (GAP_SIZE // 2)
                 if col < self.length:
                     x = col   # x is used to reference to colors list
                 else:

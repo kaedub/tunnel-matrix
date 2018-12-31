@@ -7,16 +7,16 @@ That said, it was very difficult to get right and I am still proud of myself for
 
 ## Instructions
 
-Uses Python 2 and Pygame to display a matrix.  
+Uses Pygame to render the graphics.  
 
 Each file is a slightly different tunnel pattern.
 
 #### First you must install dependencies:
-`pip2 install -r requirements.txt`
+`pip install -r requirements.txt`
 
 #### To run the tunnel.py program:
 
-`python2 tunnel.py`
+`python tunnel.py`
 
 #### Press _space bar_ to start or stop movement, _V_ to change direction, and _X_ to add the 'X' to xfold pattern.
 
